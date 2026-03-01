@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db/prisma";
 import { generateExportData, exportToJson, exportEventsToCsv } from "@/lib/export";
 import { writeAuditLog } from "@/lib/audit";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const url = new URL(request.url);
   const token = url.searchParams.get("token");

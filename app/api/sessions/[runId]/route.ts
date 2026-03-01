@@ -4,6 +4,8 @@ import { prisma } from "@/lib/db/prisma";
 import { endSessionSchema } from "@/lib/validation";
 import { writeAuditLog } from "@/lib/audit";
 
+export const dynamic = "force-dynamic";
+
 async function resolveSession(runId: string, userId: string) {
   return prisma.session.findFirst({
     where: { runId, userId },

@@ -4,6 +4,8 @@ import { prisma } from "@/lib/db/prisma";
 import { abAssignmentSchema } from "@/lib/validation";
 import { hashString } from "@/lib/crypto";
 
+export const dynamic = "force-dynamic";
+
 function deterministicVariant(userId: string, scope: string): "A" | "B" {
   const hash = hashString(userId + scope);
   const byte = parseInt(hash.slice(0, 2), 16);

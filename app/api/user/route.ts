@@ -9,6 +9,8 @@ const changePasswordSchema = z.object({
   newPassword: z.string().min(10).max(128),
 });
 
+export const dynamic = "force-dynamic";
+
 export async function GET(_request: NextRequest): Promise<NextResponse> {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

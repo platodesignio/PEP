@@ -4,6 +4,8 @@ import { prisma } from "@/lib/db/prisma";
 import { interventionRatingSchema } from "@/lib/validation";
 import { checkRateLimit } from "@/lib/rate-limit";
 
+export const dynamic = "force-dynamic";
+
 async function resolveSession(runId: string, userId: string) {
   return prisma.session.findFirst({ where: { runId, userId } });
 }
