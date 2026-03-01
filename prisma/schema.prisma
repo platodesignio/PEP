@@ -1,0 +1,279 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum EventType {
+  FOCUS_COLLAPSE
+  CONVERSATION_TURN
+  MOTION_ANOMALY
+}
+
+enum InterventionKind {
+  UI_MICRO_CHANGE
+  TIMER_START
+  SCREEN_TIDY
+  BREATH_GUIDE
+}
+
+enum InterventionRatingValue {
+  USEFUL
+  USELESS
+  FALSE_ALARM
+}
+
+enum ABVariant {
+  A
+  B
+}
+
+enum ExportJobStatus {
+  PENDING
+  PROCESSING
+  DONE
+  FAILED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sessions            Session[]
+  annotations         Annotation[]
+  apiKeys             ApiKey[]
+  feedbacks           Feedback[]
+  abAssignments       ABAssignment[]
+  auditLogs           AuditLog[]
+  exportJobs          ExportJob[]
+  interventionRatings InterventionRating[]
+}
+
+model Session {
+  id                     String    @id @default(cuid())
+  userId                 String
+  runId                  String    @unique @default(cuid())
+  startedAt              DateTime  @default(now())
+  endedAt                DateTime?
+  deviceInfoJson         String    @default("{}")
+  permissionStateJson    String    @default("{}")
+  samplingConfigJson     String    @default("{}")
+  eventSchemaVersion     String
+  detectionConfigVersion String
+  createdAt              DateTime  @default(now())
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  events        Event[]
+  featureSeries FeatureSeries[]
+  interventions Intervention[]
+  abAssignments ABAssignment[]
+  errorReports  ErrorReport[]
+
+  @@index([userId])
+  @@index([runId])
+}
+
+model Event {
+  id                  String    @id @default(cuid())
+  sessionId           String
+  runId               String
+  t0                  Float
+  t1                  Float
+  type                EventType
+  confidence          Float
+  baselineDeviation   Float
+  featuresSummaryJson String    @default("{}")
+  baselineSummaryJson String    @default("{}")
+  userConfirmed       Boolean?
+  userAnnotation      String?
+  createdAt           DateTime  @default(now())
+
+  session       Session        @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  annotations   Annotation[]
+  interventions Intervention[]
+
+  @@index([sessionId])
+  @@index([runId])
+  @@index([type])
+}
+
+model FeatureSeries {
+  id           String   @id @default(cuid())
+  sessionId    String
+  runId        String
+  kind         String
+  sampleRateHz Float
+  seriesJson   String
+  compressed   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([runId])
+}
+
+model Annotation {
+  id        String   @id @default(cuid())
+  userId    String
+  runId     String
+  eventId   String?
+  text      String?
+  tagsJson  String   @default("[]")
+  createdAt DateTime @default(now())
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event? @relation(fields: [eventId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([runId])
+}
+
+model Intervention {
+  id        String           @id @default(cuid())
+  sessionId String
+  runId     String
+  eventId   String?
+  kind      InterventionKind
+  firedAt   Float
+  metaJson  String           @default("{}")
+  createdAt DateTime         @default(now())
+
+  session Session            @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  event   Event?             @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  ratings InterventionRating[]
+
+  @@index([sessionId])
+  @@index([runId])
+}
+
+model InterventionRating {
+  id             String                 @id @default(cuid())
+  userId         String
+  runId          String
+  interventionId String
+  rating         InterventionRatingValue
+  note           String?
+  createdAt      DateTime               @default(now())
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  intervention Intervention @relation(fields: [interventionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, interventionId])
+  @@index([userId])
+  @@index([runId])
+}
+
+model ABAssignment {
+  id         String    @id @default(cuid())
+  userId     String
+  runId      String?
+  sessionId  String?
+  variant    ABVariant
+  assignedAt DateTime  @default(now())
+  createdAt  DateTime  @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session Session? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([runId])
+}
+
+model ApiKey {
+  id           String   @id @default(cuid())
+  userId       String
+  provider     String
+  encryptedKey String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+  @@index([userId])
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  userId    String?
+  sessionId String?
+  runId     String
+  message   String
+  metaJson  String   @default("{}")
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([runId])
+}
+
+model ErrorReport {
+  id        String   @id @default(cuid())
+  userId    String?
+  runId     String
+  message   String
+  stackHash String?
+  metaJson  String   @default("{}")
+  createdAt DateTime @default(now())
+
+  session Session? @relation(fields: [runId], references: [runId], onDelete: SetNull)
+
+  @@index([runId])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String
+  entityType String?
+  entityId   String?
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model ExportJob {
+  id            String          @id @default(cuid())
+  userId        String
+  status        ExportJobStatus @default(PENDING)
+  startedAt     DateTime?
+  finishedAt    DateTime?
+  downloadToken String?         @unique
+  expiresAt     DateTime?
+  createdAt     DateTime        @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model RateLimitLog {
+  id        String   @id @default(cuid())
+  key       String
+  windowEnd DateTime
+  count     Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([key, windowEnd])
+  @@index([key, windowEnd])
+}
