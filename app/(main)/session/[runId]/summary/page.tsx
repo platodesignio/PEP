@@ -19,11 +19,6 @@ export default async function SummaryPage({ params }: Props) {
   });
   if (!dbSession) notFound();
 
-  const res = await fetch(
-    `${process.env.APP_URL}/api/sessions/${params.runId}/summary`,
-    { headers: { Cookie: `pep_session=${process.env.__INTERNAL_DO_NOT_USE__}` }, cache: "no-store" }
-  ).catch(() => null);
-
   const events = await prisma.event.findMany({
     where: { sessionId: dbSession.id },
     orderBy: { t0: "asc" },
