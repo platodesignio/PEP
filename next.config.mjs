@@ -2,6 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  serverExternalPackages: ["@prisma/client", "prisma"],
   async headers() {
     return [
       {
