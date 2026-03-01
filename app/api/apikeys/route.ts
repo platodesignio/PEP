@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
 import { apiKeySchema } from "@/lib/validation";
-import { encrypt, decrypt } from "@/lib/crypto";
+import { encrypt } from "@/lib/crypto";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { writeAuditLog } from "@/lib/audit";
 
@@ -83,16 +83,4 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
   });
 
   return NextResponse.json({ ok: true });
-}
-
-export async function getDecryptedApiKey(userId: string, provider: string): Promise<string | null> {
-  const key = await prisma.apiKey.findUnique({
-    where: { userId_provider: { userId, provider } },
-  });
-  if (!key) return null;
-  try {
-    return decrypt(key.encryptedKey);
-  } catch {
-    return null;
-  }
 }
