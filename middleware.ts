@@ -23,9 +23,10 @@ function checkOrigin(request: NextRequest): boolean {
   const origin = request.headers.get("origin");
   if (!origin) return true;
   try {
-    const originUrl = new URL(origin);
-    const appUrlParsed = new URL(appUrl);
-    return originUrl.host === appUrlParsed.host;
+    const originHost = new URL(origin).host;
+    // APP_URL may be a comma-separated list of allowed origins
+    const allowedHosts = appUrl.split(",").map((u) => new URL(u.trim()).host);
+    return allowedHosts.includes(originHost);
   } catch {
     return false;
   }
