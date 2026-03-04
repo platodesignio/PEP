@@ -9,6 +9,7 @@ import VmTrace from "./components/VmTrace";
 import WeightHeatmap from "./components/WeightHeatmap";
 import NetworkGraph from "./components/NetworkGraph";
 import ParamPanel from "./components/ParamPanel";
+import { useLocale } from "@/app/components/LocaleProvider";
 
 // ─── 定数 ────────────────────────────────────────────────────────────────────
 const MAX_TICK_HISTORY = 15;   // ラスタープロット用 (15 tick = 1.5s)
@@ -22,11 +23,6 @@ interface EventLog {
   outputRates: [number, number, number];
 }
 
-const EVENT_LABELS: Record<string, string> = {
-  FOCUS_COLLAPSE:    "集中崩壊",
-  CONVERSATION_TURN: "会話転換",
-  MOTION_ANOMALY:    "動作異常",
-};
 const EVENT_COLORS: Record<string, string> = {
   FOCUS_COLLAPSE:    "#f59e0b",
   CONVERSATION_TURN: "#34d399",
@@ -36,6 +32,7 @@ const EVENT_COLORS: Record<string, string> = {
 // ─── メインページ ──────────────────────────────────────────────────────────────
 export default function SNNPage() {
   // ── UI 状態 ──────────────────────────────────────────────────────────────
+  const { t } = useLocale();
   const [running,         setRunning]         = useState(false);
   const [learningEnabled, setLearningEnabled] = useState(true);
   const [config,          setConfig]          = useState<SNNConfig>(DEFAULT_SNN_CONFIG);
@@ -416,7 +413,7 @@ export default function SNNPage() {
         }}
       >
         <h2 style={{ fontSize: "15px", fontWeight: 700, marginRight: "4px" }}>
-          ニューラル SNN (Loihi 風)
+          {t.snn.title}
         </h2>
 
         {/* センサー状態 */}
@@ -431,11 +428,11 @@ export default function SNNPage() {
           onClick={running ? stop : start}
           style={{ minWidth: "64px" }}
         >
-          {running ? "停止" : "開始"}
+          {running ? t.snn.stop : t.snn.start}
         </button>
 
         <button onClick={handleLearningToggle} style={{ fontSize: "11px", padding: "4px 10px" }}>
-          学習: {learningEnabled ? "🟢 ON" : "⚫ OFF"}
+          {learningEnabled ? t.snn.learningOn : t.snn.learningOff}
         </button>
 
         {runId && (
@@ -458,14 +455,14 @@ export default function SNNPage() {
       >
         <div className="card" style={{ padding: "8px" }}>
           <h3 style={{ fontSize: "11px", fontWeight: 600, marginBottom: "5px" }}>
-            スパイクラスター
+            {t.snn.rasterPlot}
           </h3>
           <RasterPlot tickResults={tickHistory} />
         </div>
 
         <div className="card" style={{ padding: "8px" }}>
           <h3 style={{ fontSize: "11px", fontWeight: 600, marginBottom: "5px" }}>
-            重み行列ヒートマップ (W_in | W_out)
+            {t.snn.weightHeatmap}
           </h3>
           {latestTick ? (
             <WeightHeatmap
@@ -487,7 +484,7 @@ export default function SNNPage() {
       >
         <div className="card" style={{ padding: "8px" }}>
           <h3 style={{ fontSize: "11px", fontWeight: 600, marginBottom: "5px" }}>
-            膜電位 Vm トレース (出力 3 ニューロン)
+            {t.snn.vmTrace}
           </h3>
           <VmTrace
             vmHistory={vmHistory}
@@ -500,7 +497,7 @@ export default function SNNPage() {
 
         <div className="card" style={{ padding: "8px" }}>
           <h3 style={{ fontSize: "11px", fontWeight: 600, marginBottom: "5px" }}>
-            ネットワーク接続図
+            {t.snn.networkGraph}
           </h3>
           <NetworkGraph
             nIn={latestTick?.nIn ?? 9}
@@ -518,7 +515,7 @@ export default function SNNPage() {
       {/* ── パラメータパネル ─────────────────────────────────────────────── */}
       <div className="card section" style={{ marginBottom: "10px" }}>
         <h3 style={{ fontSize: "11px", fontWeight: 600, marginBottom: "10px" }}>
-          パラメータ調整
+          {t.snn.params}
         </h3>
         <ParamPanel config={config} onChange={handleConfigChange} />
       </div>
@@ -526,7 +523,7 @@ export default function SNNPage() {
       {/* ── イベントログ ──────────────────────────────────────────────────── */}
       <div className="card">
         <h3 style={{ fontSize: "11px", fontWeight: 600, marginBottom: "8px" }}>
-          イベントログ ({eventLogs.length} 件)
+          {t.snn.eventLog} ({eventLogs.length}{t.snn.eventsCount})
         </h3>
         <div
           style={{
@@ -538,7 +535,7 @@ export default function SNNPage() {
         >
           {eventLogs.length === 0 ? (
             <p style={{ color: "var(--color-text-muted)", margin: 0 }}>
-              {running ? "イベント待機中..." : "「開始」するとイベントが記録されます"}
+              {running ? t.snn.waiting : t.snn.startToRecord}
             </p>
           ) : (
             eventLogs.map((log) => (
@@ -562,7 +559,10 @@ export default function SNNPage() {
                     minWidth: "80px",
                   }}
                 >
-                  {EVENT_LABELS[log.type] ?? log.type}
+                  {log.type === "FOCUS_COLLAPSE"    ? t.snn.focusCollapse
+                 : log.type === "CONVERSATION_TURN" ? t.snn.conversationTurn
+                 : log.type === "MOTION_ANOMALY"    ? t.snn.motionAnomaly
+                 : log.type}
                 </span>
                 <span style={{ color: "var(--color-text-muted)" }}>
                   FC:{log.outputRates[0].toFixed(0)}&nbsp;
