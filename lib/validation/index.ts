@@ -11,8 +11,9 @@ export const loginSchema = z.object({
 });
 
 export const createSessionSchema = z.object({
-  eventSchemaVersion: z.string().max(32),
-  detectionConfigVersion: z.string().max(32),
+  // eventSchemaVersion / detectionConfigVersion are set server-side from constants
+  eventSchemaVersion: z.string().max(32).optional(),
+  detectionConfigVersion: z.string().max(32).optional(),
   deviceInfoJson: z.string().max(2048).optional(),
   permissionStateJson: z.string().max(1024).optional(),
   samplingConfigJson: z.string().max(1024).optional(),
