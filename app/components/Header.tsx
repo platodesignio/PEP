@@ -8,9 +8,10 @@ import FeedbackButton from "./FeedbackButton";
 const navItems = [
   { href: "/dashboard", label: "ダッシュボード" },
   { href: "/analytics", label: "分析" },
-  { href: "/settings", label: "設定" },
-  { href: "/export", label: "エクスポート" },
-  { href: "/account", label: "アカウント" },
+  { href: "/snn",       label: "ニューラル" },
+  { href: "/settings",  label: "設定" },
+  { href: "/export",    label: "エクスポート" },
+  { href: "/account",   label: "アカウント" },
 ];
 
 interface Props {
