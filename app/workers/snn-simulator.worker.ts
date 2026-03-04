@@ -11,7 +11,7 @@ import { SNNNetwork } from "@/lib/snn/network";
 import { DEFAULT_SNN_CONFIG } from "@/lib/snn/config";
 import type { SNNWorkerIn } from "@/lib/snn/types";
 
-let network = new SNNNetwork(DEFAULT_SNN_CONFIG);
+const network = new SNNNetwork(DEFAULT_SNN_CONFIG);
 
 self.onmessage = (event: MessageEvent<SNNWorkerIn>) => {
   const msg = event.data;
