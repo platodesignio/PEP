@@ -103,6 +103,10 @@ export const translations = {
       sessionCount:        "回の稽古",
       prev:                "前へ",
       next:                "次へ",
+      cameraOn:            "📷 カメラ ON",
+      cameraOff:           "📷 カメラ OFF",
+      switchCamera:        "🔄 切替",
+      cameraDenied:        "カメラへのアクセスが拒否されました",
     },
   },
 
@@ -207,6 +211,10 @@ export const translations = {
       sessionCount:        "sessions",
       prev:                "Prev",
       next:                "Next",
+      cameraOn:            "📷 Camera ON",
+      cameraOff:           "📷 Camera OFF",
+      switchCamera:        "🔄 Switch",
+      cameraDenied:        "Camera access denied",
     },
   },
 } as const;
