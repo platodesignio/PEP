@@ -6,6 +6,8 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { writeAuditLog } from "@/lib/audit";
 import { EVENT_SCHEMA_VERSION, DETECTION_CONFIG_VERSION } from "@/lib/event/definitions";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

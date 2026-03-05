@@ -7,7 +7,7 @@ const EXPIRE_SECONDS = 24 * 60 * 60;
 
 export type SessionPayload = {
   sub: string;
-  role: "USER" | "ADMIN";
+  role: "USER" | "COACH" | "ADMIN";
 };
 
 function getSecret(): Uint8Array {
@@ -30,7 +30,7 @@ export async function verifySessionToken(token: string): Promise<SessionPayload 
   try {
     const { payload } = await jwtVerify(token, getSecret());
     if (typeof payload.sub !== "string" || !payload.role) return null;
-    return { sub: payload.sub, role: payload.role as "USER" | "ADMIN" };
+    return { sub: payload.sub, role: payload.role as "USER" | "COACH" | "ADMIN" };
   } catch {
     return null;
   }

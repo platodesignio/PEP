@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
 
+export const dynamic = "force-dynamic";
+
 async function resolveSession(runId: string, userId: string) {
   return prisma.session.findFirst({ where: { runId, userId } });
 }

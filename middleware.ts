@@ -23,9 +23,14 @@ function checkOrigin(request: NextRequest): boolean {
   const origin = request.headers.get("origin");
   if (!origin) return true;
   try {
-    const originUrl = new URL(origin);
-    const appUrlParsed = new URL(appUrl);
-    return originUrl.host === appUrlParsed.host;
+    const originHost = new URL(origin).host;
+    // APP_URL may be a comma-separated list of allowed origins
+    const allowedHosts = appUrl.split(",").map((u) => new URL(u.trim()).host);
+    if (allowedHosts.includes(originHost)) return true;
+    // Also accept any Vercel preview deployment URL for this project
+    // (e.g., pep-app-*-platoststems-projects.vercel.app)
+    if (originHost.endsWith(".vercel.app") && originHost.includes("pep")) return true;
+    return false;
   } catch {
     return false;
   }
@@ -42,7 +47,9 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     return NextResponse.next();
   }
 
-  if (pathname.startsWith("/api/") && isApiMutation(request)) {
+  // CSRF origin check: only for authenticated (non-public) API mutations.
+  // Login/register endpoints don't need it — CSRF attacks require an existing session.
+  if (pathname.startsWith("/api/") && isApiMutation(request) && !isPublic(pathname)) {
     if (!checkOrigin(request)) {
       return NextResponse.json({ error: "Forbidden: Origin mismatch" }, { status: 403 });
     }

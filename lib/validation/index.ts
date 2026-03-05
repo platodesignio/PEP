@@ -11,8 +11,9 @@ export const loginSchema = z.object({
 });
 
 export const createSessionSchema = z.object({
-  eventSchemaVersion: z.string().max(32),
-  detectionConfigVersion: z.string().max(32),
+  // eventSchemaVersion / detectionConfigVersion are set server-side from constants
+  eventSchemaVersion: z.string().max(32).optional(),
+  detectionConfigVersion: z.string().max(32).optional(),
   deviceInfoJson: z.string().max(2048).optional(),
   permissionStateJson: z.string().max(1024).optional(),
   samplingConfigJson: z.string().max(1024).optional(),
@@ -126,3 +127,73 @@ export type ApiKeyInput = z.infer<typeof apiKeySchema>;
 export type FeedbackInput = z.infer<typeof feedbackSchema>;
 export type ErrorReportInput = z.infer<typeof errorReportSchema>;
 export type AiSummarizeInput = z.infer<typeof aiSummarizeSchema>;
+
+// ── Martial Neurocontrol schemas ──────────────────────────────────────────────
+
+export const placeSchema = z.object({
+  name:    z.string().min(1).max(128),
+  lat:     z.number().min(-90).max(90),
+  lng:     z.number().min(-180).max(180),
+  radiusM: z.number().positive().max(5000).optional(),
+});
+
+export const routineSchema = z.object({
+  name:       z.string().min(1).max(128),
+  descJson:   z.string().max(4096).optional(),
+  targetSec:  z.number().int().positive().max(7200).optional(),
+  phasesJson: z.string().max(8192).optional(),
+});
+
+export const createExecutionSchema = z.object({
+  placeId:   z.string().max(128).optional(),
+  routineId: z.string().max(128).optional(),
+  inRange:   z.boolean().optional(),
+});
+
+export const endExecutionSchema = z.object({
+  tciScore:      z.number().min(0).max(100).optional(),
+  metricsJson:   z.string().max(8192).optional(),
+  coachNoteJson: z.string().max(8192).optional(),
+});
+
+export const motionSampleBatchSchema = z.object({
+  samples: z.array(z.object({
+    t:  z.number().finite(),
+    ax: z.number().finite(),
+    ay: z.number().finite(),
+    az: z.number().finite(),
+    gx: z.number().finite().optional(),
+    gy: z.number().finite().optional(),
+    gz: z.number().finite().optional(),
+    tci: z.number().min(0).max(100).optional(),
+  })).min(1).max(200),
+});
+
+export const hrvSampleSchema = z.object({
+  t:     z.number().finite(),
+  rrMs:  z.number().positive().max(3000),
+  sdnn:  z.number().nonnegative().optional(),
+  rmssd: z.number().nonnegative().optional(),
+  lfhf:  z.number().nonnegative().optional(),
+});
+
+export const respSampleSchema = z.object({
+  t:          z.number().finite(),
+  ratePerMin: z.number().positive().max(60),
+  depthScore: z.number().min(0).max(1).optional(),
+  regularity: z.number().min(0).max(1).optional(),
+});
+
+export const martialCoachSchema = z.object({
+  executionId: z.string().max(128),
+  locale:      z.enum(["ja", "en"]).optional(),
+});
+
+export type PlaceInput            = z.infer<typeof placeSchema>;
+export type RoutineInput          = z.infer<typeof routineSchema>;
+export type CreateExecutionInput  = z.infer<typeof createExecutionSchema>;
+export type EndExecutionInput     = z.infer<typeof endExecutionSchema>;
+export type MotionSampleBatchInput = z.infer<typeof motionSampleBatchSchema>;
+export type HrvSampleInput        = z.infer<typeof hrvSampleSchema>;
+export type RespSampleInput       = z.infer<typeof respSampleSchema>;
+export type MartialCoachInput     = z.infer<typeof martialCoachSchema>;
