@@ -21,6 +21,7 @@ export default function Header({ role, runId }: Props) {
     { href: "/dashboard", label: t.nav.dashboard },
     { href: "/analytics",  label: t.nav.analytics  },
     { href: "/snn",        label: t.nav.neural      },
+    { href: "/martial",    label: t.nav.martial     },
     { href: "/settings",   label: t.nav.settings    },
     { href: "/export",     label: t.nav.export      },
     { href: "/account",    label: t.nav.account     },
@@ -75,6 +76,22 @@ export default function Header({ role, runId }: Props) {
             {item.label}
           </Link>
         ))}
+
+        {(role === "COACH" || role === "ADMIN") && (
+          <Link
+            href="/martial/coach"
+            style={{
+              fontSize: "12px",
+              textDecoration: "none",
+              color: pathname.startsWith("/martial/coach")
+                ? "var(--color-text)"
+                : "var(--color-text-muted)",
+              fontWeight: pathname.startsWith("/martial/coach") ? 600 : 400,
+            }}
+          >
+            {t.nav.martial} Coach
+          </Link>
+        )}
 
         {role === "ADMIN" && (
           <Link

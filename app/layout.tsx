@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { LocaleProvider } from "@/app/components/LocaleProvider";
+import ServiceWorkerRegister from "@/app/components/ServiceWorkerRegister";
 
 export const metadata: Metadata = {
   title: "Plato Event Proof Lab",
@@ -19,9 +20,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           httpEquiv="Content-Security-Policy"
           content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://api.openai.com; media-src 'self' blob:; worker-src 'self' blob:; frame-src 'none'; object-src 'none'; base-uri 'self';"
         />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#0a0a0a" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
       <body>
-        <LocaleProvider>{children}</LocaleProvider>
+        <LocaleProvider>
+          <ServiceWorkerRegister />
+          {children}
+        </LocaleProvider>
       </body>
     </html>
   );

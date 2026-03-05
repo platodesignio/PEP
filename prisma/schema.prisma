@@ -10,6 +10,7 @@ datasource db {
 
 enum Role {
   USER
+  COACH
   ADMIN
 }
 
@@ -60,6 +61,9 @@ model User {
   auditLogs           AuditLog[]
   exportJobs          ExportJob[]
   interventionRatings InterventionRating[]
+  places              Place[]
+  routines            Routine[]
+  executions          Execution[]
 }
 
 model Session {
@@ -277,4 +281,114 @@ model RateLimitLog {
 
   @@unique([key, windowEnd])
   @@index([key, windowEnd])
+}
+
+// ── Martial Neurocontrol ──────────────────────────────────────────────────────
+
+model Place {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  lat       Float
+  lng       Float
+  radiusM   Float    @default(50)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  executions Execution[]
+
+  @@index([userId])
+}
+
+model Routine {
+  id         String   @id @default(cuid())
+  userId     String
+  name       String
+  descJson   String   @default("{}")
+  targetSec  Int      @default(300)
+  phasesJson String   @default("[]")
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  executions Execution[]
+
+  @@index([userId])
+}
+
+model Execution {
+  id            String    @id @default(cuid())
+  userId        String
+  placeId       String?
+  routineId     String?
+  startedAt     DateTime  @default(now())
+  endedAt       DateTime?
+  tciScore      Float?
+  metricsJson   String    @default("{}")
+  coachNoteJson String    @default("{}")
+  inRange       Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  place         Place?             @relation(fields: [placeId], references: [id], onDelete: SetNull)
+  routine       Routine?           @relation(fields: [routineId], references: [id], onDelete: SetNull)
+  motionSamples MotionSample[]
+  hrvSamples    HRVSample[]
+  respSamples   RespirationSample[]
+
+  @@index([userId])
+  @@index([placeId])
+  @@index([routineId])
+  @@index([startedAt])
+}
+
+model MotionSample {
+  id          String   @id @default(cuid())
+  executionId String
+  t           Float
+  ax          Float
+  ay          Float
+  az          Float
+  gx          Float?
+  gy          Float?
+  gz          Float?
+  tci         Float?
+  createdAt   DateTime @default(now())
+
+  execution Execution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+
+  @@index([executionId, t])
+}
+
+model HRVSample {
+  id          String   @id @default(cuid())
+  executionId String
+  t           Float
+  rrMs        Float
+  sdnn        Float?
+  rmssd       Float?
+  lfhf        Float?
+  createdAt   DateTime @default(now())
+
+  execution Execution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+
+  @@index([executionId, t])
+}
+
+model RespirationSample {
+  id          String   @id @default(cuid())
+  executionId String
+  t           Float
+  ratePerMin  Float
+  depthScore  Float?
+  regularity  Float?
+  createdAt   DateTime @default(now())
+
+  execution Execution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+
+  @@index([executionId, t])
 }
